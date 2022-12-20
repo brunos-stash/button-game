@@ -16,6 +16,7 @@ class GameClient:
         self.started = False
         self.my_score = 0
         self.op_score = 0
+        self.finish = 5
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
@@ -26,7 +27,6 @@ class GameClient:
         if  self.client_id == _id:
             return
         print(f"{_id}: {_message}")
-        # print("_id:", _id)
         
         if not self.started:
             if _message == "start":
@@ -34,8 +34,8 @@ class GameClient:
         else:
             if self.keep_score:
                 self.op_score += 1
-                print(f"score: {self.mqtt_client._client_id}={self.my_score}, {client._client_id}:{self.op_score}")
-    
+                self.update()
+
     def start(self):
         if self.keep_score:
             input("start ?")
@@ -48,6 +48,29 @@ class GameClient:
         if self.keep_score:
             self.my_score += 1
         self.mqtt_client.publish(self.game_topic, self.client_id+":tap")
+
+    def update(self):
+        print(f"score: {self.mqtt_client._client_id}={self.my_score}, :{self.op_score}")
+        if self.my_score > 0:
+            # self.raspberry.led1.on()
+            print("led 1 on")
+        if self.my_score >= self.finish/2:
+            # self.raspberry.led2.on()
+            print("led 2 on")
+        if self.my_score >= self.finish:
+            # self.raspberry.led3.on()
+            print("led 3 on")
+            print("you won")
+            if self.keep_score:
+                self.end_game()
+        if self.op_score >= self.finish:
+            print("you lost")
+            if self.keep_score:
+                self.end_game()
+        
+
+    def end_game(self):
+        print("game ended.")
 
 if __name__ == '__main__':
     my_client_id = input("your id: ")
