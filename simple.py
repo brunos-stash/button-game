@@ -1,8 +1,9 @@
 import paho.mqtt.client as mqtt
+from random import randint
 from time import sleep
 
 class GameClient:
-    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", main=False) -> None:
+    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", main=None) -> None:
         # self.raspberry = RaspBerry()
         # self.raspberry.button.when_pressed = self.send_tap
         self.mqtt_client = mqtt.Client(client_id=client_id)
@@ -18,18 +19,48 @@ class GameClient:
         self.op_score = 0
         self.finish = 5
         self.penalty_counter = 3
+        self._draw_nr = randint(0, 10000)
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
         self.mqtt_client.subscribe(self.game_topic)
         self.mqtt_client.subscribe(self.game_topic+"/status")
         self.mqtt_client.subscribe(self.game_topic+"/status/score")
+        self.mqtt_client.subscribe(self.game_topic+"/status/draw")
         self.mqtt_client.subscribe(self.game_topic+"/tap")
         self.mqtt_client.message_callback_add(self.game_topic+"/status", self.on_status)
         self.mqtt_client.message_callback_add(self.game_topic+"/status/score", self.on_score)
+        self.mqtt_client.message_callback_add(self.game_topic+"/status/draw", self.on_draw)
         self.mqtt_client.message_callback_add(self.game_topic+"/tap", self.on_tap)
+        self._draw_main()
         print("listening on status")
 
+    def _draw_main(self):
+        # self.draw_nr = randint(0, 10000)
+        print("sending draw nr: ", self._draw_nr)
+        self._publish(self.game_topic+"/status/draw", self._draw_nr)
+
+    def on_draw(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
+        _id = self._get_id(message)
+        _message = self._get_message(message)
+        if self.client_id == _id:
+            return
+        try:
+            nr = int(_message)
+        except Exception as e:
+            print("woops: ", e)
+            return
+        if self._draw_nr >= nr:
+            self.main = True
+            self.mqtt_client.unsubscribe(self.game_topic+"/status/draw")
+            print("im main")
+        else:
+            self.main = False
+            self.mqtt_client.unsubscribe(self.game_topic+"/status/draw")
+            print("im not main")
+        print("sending one last time my draw nr")
+        self._draw_main()
+        
 
     def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
@@ -146,7 +177,7 @@ class GameClient:
         sleep(cd)
 
     def _publish(self, topic, message):
-        self.mqtt_client.publish(topic, self.client_id+":"+message)
+        self.mqtt_client.publish(topic, self.client_id+":"+str(message))
 
     def send_tap(self):
         if self.main:
