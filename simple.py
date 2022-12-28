@@ -34,14 +34,6 @@ class GameClient:
         if  self.client_id == _id:
             return
         print(f"on_message: {_id}: {_message}")
-        
-        if not self.started:
-            if _message == "start":
-                self.started = True
-        # else:
-        #     if self.keep_score:
-        #         self.op_score += 1
-        #         self.update()
 
     def on_tap(self, client, userdata, message):
         print("on_tap: ", message.payload)
