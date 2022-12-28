@@ -1,2 +1,4 @@
 .env
 .vscode
+simple_rec.py
+*.pyc
