@@ -5,8 +5,8 @@ from raspberry import RaspBerry
 
 class GameClient:
     def __init__(self, player_id, mqtt_broker="mqtt.eclipseprojects.io") -> None:
-        self.raspberry = RaspBerry()
-#         self.raspberry.button.when_pressed = self.send_tap
+        # self.raspberry = RaspBerry()
+        # self.raspberry.button.when_pressed = self.send_tap
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
@@ -154,18 +154,18 @@ class GameClient:
         self.own_score += 1
         self.check_game()
 
-    def check_game(self):
-        if self.own_score > 0:
-            self.raspberry.led1.on()
-        if self.own_score >= self.finish/2:
-            self.raspberry.led2.on()
-        if self.own_score >= self.finish:
-            self.raspberry.led3.on()
-            print("you won")
-            self.end_game()
-        if self.opponent_score >= self.finish:
-            print("you lost")
-            self.end_game()
+    # def check_game(self):
+    #     if self.own_score > 0:
+    #         # self.raspberry.led1.on()
+    #     if self.own_score >= self.finish/2:
+    #         # self.raspberry.led2.on()
+    #     if self.own_score >= self.finish:
+    #         # self.raspberry.led3.on()
+    #         print("you won")
+    #         self.end_game()
+    #     if self.opponent_score >= self.finish:
+    #         print("you lost")
+    #         self.end_game()
             
     def reset(self):
         if not self.reset:
@@ -181,7 +181,7 @@ class GameClient:
         self.opponent = None
         self.own_score = 0
         self.opponent_score = 0
-        self.raspberry.end()
+        # self.raspberry.end()
         exit()
 #         sleep(random.randint(0,10)/10)
 #         self.start_matchmaking()
