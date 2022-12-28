@@ -35,10 +35,10 @@ class GameClient:
         _message = self._get_message(message)
         if  self.client_id == _id:
             return
-        print(f"on_message: {_id}: {_message}")
+        # print(f"on_message: {_id}: {_message}")
 
     def on_tap(self, client, userdata, message):
-        print("on_tap: ", message.payload)
+        # print("on_tap: ", message.payload)
         if not self.started:
             print("not started")
             return
@@ -51,7 +51,7 @@ class GameClient:
             self.send_score()
 
     def on_status(self, client, userdata, message):
-        print("on_status: ", message.payload)
+        # print("on_status: ", message.payload)
         _id = self._get_id(message)
         _message = self._get_message(message)
         if _message == "start":
@@ -64,6 +64,7 @@ class GameClient:
             # you are not main and main started game
             elif not self.main and (self.client_id != _id):
                 self.started = True
+            print("START!")
         if _message == "end":
             print("game ended, press enter to exit")
             exit()
@@ -80,8 +81,8 @@ class GameClient:
                     self.op_score = int(main)
                 except Exception as e:
                     print("OOOooops: ", e)
-            else:
-                print("you are not main trying to send score message")
+            # else:
+            #     print("you are not main trying to send score message")
             self.update()
 
     def _get_id(self, message):
@@ -113,13 +114,15 @@ class GameClient:
         print(f"my score: {self.my_score} | my opponent: {self.op_score}" )
         if self.my_score > 0:
             # self.raspberry.led1.on()
-            print("led 1 on")
+            # print("led 1 on")
+            pass
         if self.my_score >= self.finish/2:
             # self.raspberry.led2.on()
-            print("led 2 on")
+            # print("led 2 on")
+            pass
         if self.my_score >= self.finish:
             # self.raspberry.led3.on()
-            print("led 3 on")
+            # print("led 3 on")
             print("you won")
             if self.main:
                 self.end_game()
@@ -129,7 +132,7 @@ class GameClient:
                 self.end_game()
         
     def end_game(self):
-        print("send end")
+        # print("send end")
         self._publish(self.game_topic+"/status", "end")
 
 if __name__ == '__main__':
