@@ -44,6 +44,7 @@ class GameClient:
         #         self.update()
 
     def on_tap(self, client, userdata, message):
+        print("on_tap: ", message.payload)
         if self.keep_score:
             _id = self._get_id(message)
             if _id == self.client_id:
@@ -54,13 +55,22 @@ class GameClient:
 
     def on_status(self, client, userdata, message):
         print("on_status: ", message.payload)
-        if not self.keep_score:
-            pass
-    
-    def _get_id(message):
+        _id = self._get_id(message)
+        _message = self._get_message(message)
+        if _message == "start":
+            if self.started:
+                return
+            # you are main and you started the game
+            if self.keep_score and (self.client_id == _id):
+                self.started = True
+            # you are not main and main started game
+            elif not self.keep_score and (self.client_id != _id):
+                self.started = True
+
+    def _get_id(self, message):
         return bytes.decode(message.payload).split(":")[0]
 
-    def _get_message(message):
+    def _get_message(self, message):
         return bytes.decode(message.payload).split(":")[1]
 
     def start(self):
@@ -68,7 +78,6 @@ class GameClient:
             input("start ?")
             # self.mqtt_client.publish(self.game_topic, self.client_id+":start")
             self._publish(self.game_topic+"/status", "start")
-            self.started = True
         else:
             print("waiting for other to start")
 
