@@ -93,7 +93,6 @@ class GameClient:
     def start(self):
         if self.main:
             input("press enter to start...")
-            # self.mqtt_client.publish(self.game_topic, self.client_id+":start")
             self._publish(self.game_topic+"/status", "start")
         else:
             print("waiting for main client to start")
@@ -107,7 +106,6 @@ class GameClient:
         self._publish(self.game_topic+"/tap", "tap")
 
     def send_score(self):
-        score = f"score:main={self.my_score};notmain:{self.op_score}"
         score = f"score;{self.my_score},{self.op_score}"
         self._publish(self.game_topic+"/status/score", score)
 
