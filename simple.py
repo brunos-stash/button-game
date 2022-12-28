@@ -137,13 +137,20 @@ class GameClient:
 
     def start(self):
         if self.main:
-            input("press enter to start...")
-            self._start_countdown()
-            self._publish(self.game_topic+"/status", "start")
+            print("press enter to start...")
+            self.mqtt_client.subscribe(self.game_topic+"/status/countdown")
+            self.mqtt_client.message_callback_add(self.game_topic+"/status/countdown", self.on_countdown)
+            # self._publish(self.game_topic+"/status/countdown","start")
+            # self._start_countdown()
+            # self._publish(self.game_topic+"/status", "start")
         else:
             print("waiting for main client to start")
+    def start_cd(self):
+        self._publish(self.game_topic+"/status/countdown","start")
 
-    def _start_countdown(self):
+    def on_countdown(self, client, userdata, message):
+        self.mqtt_client.unsubscribe(self.game_topic+"/status/countdown")
+        self.mqtt_client.message_callback_remove(self.game_topic+"/status/countdown")
         cd = 1/3
         blank = " "*50
         self._publish(self.game_topic, "GET READY!\n")
@@ -175,6 +182,7 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "1..."+blank)
         sleep(cd)
+        self._publish(self.game_topic+"/status", "start")
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
