@@ -33,9 +33,8 @@ class GameClient:
     def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
         _message = self._get_message(message)
-        if  self.client_id == _id:
-            return
-        # print(f"on_message: {_id}: {_message}")
+        # blank = "                                              \r"
+        print(f"{_message}", end="\r")
 
     def on_tap(self, client, userdata, message):
         # print("on_tap: ", message.payload)
@@ -64,6 +63,7 @@ class GameClient:
             # you are not main and main started game
             elif not self.main and (self.client_id != _id):
                 self.started = True
+            print("")
             print("START!")
         if _message == "end":
             print("game ended, press enter to exit")
@@ -94,9 +94,42 @@ class GameClient:
     def start(self):
         if self.main:
             input("press enter to start...")
+            self._start_countdown()
             self._publish(self.game_topic+"/status", "start")
         else:
             print("waiting for main client to start")
+
+    def _start_countdown(self):
+        cd = 1/3
+        blank = " "*50
+        self._publish(self.game_topic, "GET READY!\n")
+        sleep(1)
+        self._publish(self.game_topic, "3   "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "3.  "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "3.. "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "3..."+blank)
+        sleep(cd)
+        # self._publish(self.game_topic, "\n")
+        self._publish(self.game_topic, "\r\n2   "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "2.  "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "2.. "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "2..."+blank)
+        sleep(cd)
+        # self._publish(self.game_topic, "\n")
+        self._publish(self.game_topic, "\r\n1   "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "1.  "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "1.. "+blank)
+        sleep(cd)
+        self._publish(self.game_topic, "1..."+blank)
+        sleep(cd)
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+message)

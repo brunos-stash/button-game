@@ -17,8 +17,8 @@ gclient.mqtt_client.loop_start()
 gclient.start()
 
 while True:
-    if gclient.started:
-        inp = input("")
-        # gclient.send_tap()
-        gclient.mqtt_client.publish(gclient.game_topic+"/tap", gclient.client_id+": "+inp)
-    sleep(0.1)
+    # if gclient.started:
+    inp = input("")
+    # gclient.send_tap()
+    gclient.mqtt_client.publish(gclient.game_topic+"/tap", gclient.client_id+": "+inp)
+    # sleep(0.1)
