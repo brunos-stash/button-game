@@ -10,7 +10,7 @@ else:
     main = False
 
 gclient = GameClient(my_client_id, main=main)
-print("i am keeping score: ", main)
+print("i am main client: ", main)
 
 gclient.mqtt_client.loop_start()
 # gclient.publish(lobby_topic, "available")
