@@ -12,7 +12,7 @@ class GameClient:
         self.mqtt_client.user_data_set(client_id)
         self.client_id = client_id
         self.game_topic = game_topic
-        self.keep_score = keep_score
+        self.main = keep_score
         self.started = False
         self.my_score = 0
         self.op_score = 0
@@ -37,7 +37,10 @@ class GameClient:
 
     def on_tap(self, client, userdata, message):
         print("on_tap: ", message.payload)
-        if self.keep_score:
+        if not self.started:
+            print("not started")
+            return
+        if self.main:
             _id = self._get_id(message)
             if _id == self.client_id:
                 self.my_score += 1
@@ -53,10 +56,10 @@ class GameClient:
             if self.started:
                 return
             # you are main and you started the game
-            if self.keep_score and (self.client_id == _id):
+            if self.main and (self.client_id == _id):
                 self.started = True
             # you are not main and main started game
-            elif not self.keep_score and (self.client_id != _id):
+            elif not self.main and (self.client_id != _id):
                 self.started = True
 
     def _get_id(self, message):
@@ -66,7 +69,7 @@ class GameClient:
         return bytes.decode(message.payload).split(":")[1]
 
     def start(self):
-        if self.keep_score:
+        if self.main:
             input("start ?")
             # self.mqtt_client.publish(self.game_topic, self.client_id+":start")
             self._publish(self.game_topic+"/status", "start")
@@ -77,7 +80,7 @@ class GameClient:
         self.mqtt_client.publish(topic, self.client_id+":"+message)
 
     def send_tap(self):
-        if self.keep_score:
+        if self.main:
             self.my_score += 1
         self._publish(self.game_topic+"/tap", "tap")
 
@@ -93,11 +96,11 @@ class GameClient:
             # self.raspberry.led3.on()
             print("led 3 on")
             print("you won")
-            if self.keep_score:
+            if self.main:
                 self.end_game()
         if self.op_score >= self.finish:
             print("you lost")
-            if self.keep_score:
+            if self.main:
                 self.end_game()
         
 
