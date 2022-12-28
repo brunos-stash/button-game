@@ -22,8 +22,10 @@ class GameClient:
         print("Connected with result code "+str(rc))
         self.mqtt_client.subscribe(self.game_topic)
         self.mqtt_client.subscribe(self.game_topic+"/status")
+        self.mqtt_client.subscribe(self.game_topic+"/status/score")
         self.mqtt_client.subscribe(self.game_topic+"/tap")
         self.mqtt_client.message_callback_add(self.game_topic+"/status", self.on_status)
+        self.mqtt_client.message_callback_add(self.game_topic+"/status/score", self.on_score)
         self.mqtt_client.message_callback_add(self.game_topic+"/tap", self.on_tap)
         print("listening on status")
 
@@ -62,6 +64,23 @@ class GameClient:
             # you are not main and main started game
             elif not self.main and (self.client_id != _id):
                 self.started = True
+        if _message == "end":
+            print("game ended, press enter to exit")
+            exit()
+        
+    def on_score(self, client, userdata, message):
+        _id = self._get_id(message)
+        _message = self._get_message(message)
+        _type, score = _message.split(";")
+        if _type == "score":
+            main, not_main = score.split(",")
+            if self.main:
+                my_score = main
+                op_score = not_main
+            else:
+                my_score = not_main
+                op_score = main
+            print(f"my score: {my_score} | my opponent: {op_score}" )
 
     def _get_id(self, message):
         return bytes.decode(message.payload).split(":")[0]
@@ -71,7 +90,7 @@ class GameClient:
 
     def start(self):
         if self.main:
-            input("start ?")
+            input("press enter to start...")
             # self.mqtt_client.publish(self.game_topic, self.client_id+":start")
             self._publish(self.game_topic+"/status", "start")
         else:
@@ -85,8 +104,14 @@ class GameClient:
             self.my_score += 1
         self._publish(self.game_topic+"/tap", "tap")
 
+    def send_score(self):
+        score = f"score:main={self.my_score};notmain:{self.op_score}"
+        score = f"score;{self.my_score},{self.op_score}"
+        self._publish(self.game_topic+"/status/score", score)
+
     def update(self):
-        print(f"score: {self.mqtt_client._client_id}={self.my_score}, :{self.op_score}")
+        self.send_score()
+        # print()
         if self.my_score > 0:
             # self.raspberry.led1.on()
             print("led 1 on")
@@ -104,9 +129,9 @@ class GameClient:
             if self.main:
                 self.end_game()
         
-
     def end_game(self):
-        print("game ended.")
+        print("send end")
+        self._publish(self.game_topic+"/status", "end")
 
 if __name__ == '__main__':
     my_client_id = input("your id: ")
