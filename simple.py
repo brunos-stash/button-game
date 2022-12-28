@@ -48,7 +48,7 @@ class GameClient:
                 self.my_score += 1
             else:
                 self.op_score += 1
-            self.update()
+            self.send_score()
 
     def on_status(self, client, userdata, message):
         print("on_status: ", message.payload)
@@ -74,19 +74,15 @@ class GameClient:
         _type, score = _message.split(";")
         if _type == "score":
             main, not_main = score.split(",")
-            # you are main and you send score message
-            if self.main and (self.client_id == _id):
-                my_score = self.my_score
-                op_score = self.op_score
-            # you are not main and you didnt send message
-            elif not self.main and (self.client_id != _id):
-                my_score = not_main
-                op_score = main
+            if not self.main and (self.client_id != _id):
+                try:
+                    self.my_score = int(not_main)
+                    self.op_score = int(main)
+                except Exception as e:
+                    print("OOOooops: ", e)
             else:
                 print("you are not main trying to send score message")
-                my_score = "oops"
-                op_score = "double oops"
-            print(f"my score: {my_score} | my opponent: {op_score}" )
+            self.update()
 
     def _get_id(self, message):
         return bytes.decode(message.payload).split(":")[0]
@@ -116,8 +112,7 @@ class GameClient:
         self._publish(self.game_topic+"/status/score", score)
 
     def update(self):
-        self.send_score()
-        # print()
+        print(f"my score: {self.my_score} | my opponent: {self.op_score}" )
         if self.my_score > 0:
             # self.raspberry.led1.on()
             print("led 1 on")
