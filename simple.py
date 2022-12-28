@@ -33,7 +33,6 @@ class GameClient:
     def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
         _message = self._get_message(message)
-        # blank = "                                              \r"
         print(f"{_message}", end="\r")
 
     def on_tap(self, client, userdata, message):
@@ -112,7 +111,6 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "3..."+blank)
         sleep(cd)
-        # self._publish(self.game_topic, "\n")
         self._publish(self.game_topic, "\r\n2   "+blank)
         sleep(cd)
         self._publish(self.game_topic, "2.  "+blank)
@@ -121,7 +119,6 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "2..."+blank)
         sleep(cd)
-        # self._publish(self.game_topic, "\n")
         self._publish(self.game_topic, "\r\n1   "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1.  "+blank)
