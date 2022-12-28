@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 from time import sleep
 
 class GameClient:
-    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", keep_score=False) -> None:
+    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", main=False) -> None:
         # self.raspberry = RaspBerry()
         # self.raspberry.button.when_pressed = self.send_tap
         self.mqtt_client = mqtt.Client(client_id=client_id)
@@ -12,7 +12,7 @@ class GameClient:
         self.mqtt_client.user_data_set(client_id)
         self.client_id = client_id
         self.game_topic = game_topic
-        self.main = keep_score
+        self.main = main
         self.started = False
         self.my_score = 0
         self.op_score = 0
@@ -54,6 +54,7 @@ class GameClient:
         _message = self._get_message(message)
         if _message == "start":
             if self.started:
+                print("not started")
                 return
             # you are main and you started the game
             if self.main and (self.client_id == _id):
@@ -74,7 +75,7 @@ class GameClient:
             # self.mqtt_client.publish(self.game_topic, self.client_id+":start")
             self._publish(self.game_topic+"/status", "start")
         else:
-            print("waiting for other to start")
+            print("waiting for main client to start")
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+message)
@@ -111,12 +112,12 @@ if __name__ == '__main__':
     my_client_id = input("your id: ")
     keep_score_inp = input("main ?")
     if keep_score_inp == "y":
-        keep_score = True
+        main = True
     else:
-        keep_score = False
+        main = False
 
-    gclient = GameClient(my_client_id, keep_score=keep_score)
-    print("i am keeping score: ", keep_score)
+    gclient = GameClient(my_client_id, main=main)
+    print("i am keeping score: ", main)
 
     gclient.mqtt_client.loop_start()
     # gclient.publish(lobby_topic, "available")

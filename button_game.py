@@ -3,14 +3,14 @@ from simple import GameClient, sleep
 
 # client = mqtt.Client()
 my_client_id = input("your id: ")
-keep_score_inp = input("main ?")
-if keep_score_inp == "y":
-    keep_score = True
+main_inp = input("main ?")
+if main_inp == "y":
+    main = True
 else:
-    keep_score = False
+    main = False
 
-gclient = GameClient(my_client_id, keep_score=keep_score)
-print("i am keeping score: ", keep_score)
+gclient = GameClient(my_client_id, main=main)
+print("i am keeping score: ", main)
 
 gclient.mqtt_client.loop_start()
 # gclient.publish(lobby_topic, "available")
