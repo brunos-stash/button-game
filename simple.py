@@ -140,7 +140,6 @@ class GameClient:
         self._publish(self.game_topic, "1.  "+blank)
         sleep(cd)
         # self.send_tap()
-
         self._publish(self.game_topic, "1.. "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1..."+blank)
