@@ -28,8 +28,9 @@ class GameClient:
         print("listening on status")
 
 
-    def on_message(self, client: mqtt.Client, userdata, msg: mqtt.MQTTMessage):
-        _id, _message = bytes.decode(msg.payload).split(":")
+    def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
+        _id = self._get_id(message)
+        _message = self._get_message(message)
         if  self.client_id == _id:
             return
         print(f"on_message: {_id}: {_message}")
@@ -44,7 +45,7 @@ class GameClient:
 
     def on_tap(self, client, userdata, message):
         if self.keep_score:
-            _id, _message = bytes.decode(message.payload).split(":")
+            _id = self._get_id(message)
             if _id == self.client_id:
                 self.my_score += 1
             else:
@@ -55,6 +56,12 @@ class GameClient:
         print("on_status: ", message.payload)
         if not self.keep_score:
             pass
+    
+    def _get_id(message):
+        return bytes.decode(message.payload).split(":")[0]
+
+    def _get_message(message):
+        return bytes.decode(message.payload).split(":")[1]
 
     def start(self):
         if self.keep_score:
