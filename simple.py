@@ -17,6 +17,7 @@ class GameClient:
         self.my_score = 0
         self.op_score = 0
         self.finish = 5
+        self.penalty_counter = 3
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
@@ -37,8 +38,18 @@ class GameClient:
 
     def on_tap(self, client, userdata, message):
         # print("on_tap: ", message.payload)
+        _id = self._get_id(message)
+        # _message = self._get_message(message)
         if not self.started:
-            print("not started")
+            if self.client_id != _id:
+                return
+            self.penalty_counter -= 1
+            if self.penalty_counter <= 0:
+                print("you lose")
+                self._publish(self.game_topic+"/status", "b4begin")
+            else:
+                print("not started, dont try to tap before game begins again !")
+                print(f"penalties left: {self.penalty_counter}")
             return
         if self.main:
             _id = self._get_id(message)
@@ -67,7 +78,10 @@ class GameClient:
         if _message == "end":
             print("game ended, press enter to exit")
             exit()
-        
+        if _message == "b4begin":
+            print(f"{_id} tapped to often before game began and lost")
+            self.end_game()
+
     def on_score(self, client, userdata, message):
         _id = self._get_id(message)
         _message = self._get_message(message)
@@ -109,6 +123,7 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "3.. "+blank)
         sleep(cd)
+        # self.send_tap()
         self._publish(self.game_topic, "3..."+blank)
         sleep(cd)
         self._publish(self.game_topic, "\r\n2   "+blank)
@@ -117,12 +132,15 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "2.. "+blank)
         sleep(cd)
+        # self.send_tap()
         self._publish(self.game_topic, "2..."+blank)
         sleep(cd)
         self._publish(self.game_topic, "\r\n1   "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1.  "+blank)
         sleep(cd)
+        # self.send_tap()
+
         self._publish(self.game_topic, "1.. "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1..."+blank)
