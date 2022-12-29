@@ -2,17 +2,28 @@ import paho.mqtt.client as mqtt
 from random import randint
 from time import sleep
 import keyboard
+from dataclasses import dataclass
+
+@dataclass
+class Topic:
+    lobby: str
+    status: str
+    score: str
+    draw: str
+    tap: str
+
 class GameClient:
-    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", main=None) -> None:
+    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_lobby="", main=None) -> None:
         # self.raspberry = RaspBerry()
         # self.raspberry.button.when_pressed = self.send_tap
+        self.topic = Topic
         self.mqtt_client = mqtt.Client(client_id=client_id)
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.connect(mqtt_broker, 1883, 60)
         self.mqtt_client.user_data_set(client_id)
         self.client_id = client_id
-        self.game_topic = game_topic
+        self.topic.lobby = "aaaaahhhh/djkjdkj/lobby/"+game_lobby
         self.main = main
         self.started = False
         self.ended = False
@@ -25,21 +36,22 @@ class GameClient:
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
-        self.mqtt_client.subscribe(self.game_topic)
-        self.mqtt_client.subscribe(self.game_topic+"/status")
-        self.mqtt_client.subscribe(self.game_topic+"/status/score")
-        self.mqtt_client.subscribe(self.game_topic+"/status/draw")
-        self.mqtt_client.subscribe(self.game_topic+"/tap")
-        self.mqtt_client.message_callback_add(self.game_topic+"/status", self.on_status)
-        self.mqtt_client.message_callback_add(self.game_topic+"/status/score", self.on_score)
-        self.mqtt_client.message_callback_add(self.game_topic+"/status/draw", self.on_draw)
-        self.mqtt_client.message_callback_add(self.game_topic+"/tap", self.on_tap)
+        self.mqtt_client.subscribe(self.topic.lobby)
+        self.mqtt_client.subscribe(self.topic.lobby+"/status")
+        self.mqtt_client.subscribe(self.topic.lobby+"/status/score")
+        self.mqtt_client.subscribe(self.topic.lobby+"/status/draw")
+        self.mqtt_client.subscribe(self.topic.lobby+"/tap")
+        self.mqtt_client.message_callback_add(self.topic.lobby+"/status", self.on_status)
+        self.mqtt_client.message_callback_add(self.topic.lobby+"/status/score", self.on_score)
+        self.mqtt_client.message_callback_add(self.topic.lobby+"/status/draw", self.on_draw)
+        self.mqtt_client.message_callback_add(self.topic.lobby+"/tap", self.on_tap)
+        print("You are in lobby: ", self.topic.lobby)
         self._draw_main()
         print("listening on status")
 
     def _draw_main(self):
         print("sending draw nr: ", self._draw_nr)
-        self._publish(self.game_topic+"/status/draw", self._draw_nr)
+        self._publish(self.topic.lobby+"/status/draw", self._draw_nr)
 
     def on_draw(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
@@ -53,11 +65,11 @@ class GameClient:
             return
         if self._draw_nr >= nr:
             self.main = True
-            self.mqtt_client.unsubscribe(self.game_topic+"/status/draw")
+            self.mqtt_client.unsubscribe(self.topic.lobby+"/status/draw")
             print("im main")
         else:
             self.main = False
-            self.mqtt_client.unsubscribe(self.game_topic+"/status/draw")
+            self.mqtt_client.unsubscribe(self.topic.lobby+"/status/draw")
             print("im not main")
         print("sending one last time my draw nr")
         self._draw_main()
@@ -85,7 +97,7 @@ class GameClient:
             self.penalty_counter -= 1
             if self.penalty_counter <= 0:
                 print("you lose")
-                self._publish(self.game_topic+"/status", "b4begin")
+                self._publish(self.topic.lobby+"/status", "b4begin")
             else:
                 print("not started, dont try to tap before game begins again !")
                 print(f"penalties left: {self.penalty_counter}")
@@ -156,27 +168,27 @@ class GameClient:
     def start_cd(self):
         cd = 1/3
         blank = " "*50
-        self._publish(self.game_topic, "GET READY!\n")
+        self._publish(self.topic.lobby, "GET READY!\n")
         sleep(1)
         for i in range(3):
             nr = str(3-i)
             for dot in range(4):
                 countdown = nr + "." * dot
-                self._publish(self.game_topic, countdown + blank)
+                self._publish(self.topic.lobby, countdown + blank)
                 if self.ended:
                     return
                 sleep(cd)
-        self._publish(self.game_topic+"/status", "start")
+        self._publish(self.topic.lobby+"/status", "start")
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
 
     def send_tap(self):
-        self._publish(self.game_topic+"/tap", "tap")
+        self._publish(self.topic.lobby+"/tap", "tap")
 
     def send_score(self):
         score = f"score;{self.my_score},{self.op_score}"
-        self._publish(self.game_topic+"/status/score", score)
+        self._publish(self.topic.lobby+"/status/score", score)
 
     def update(self):
         print(f"my score: {self.my_score} | my opponent: {self.op_score}" )
@@ -198,7 +210,7 @@ class GameClient:
             self.end_game()
         
     def end_game(self):
-        self._publish(self.game_topic+"/status", "end")
-        self.mqtt_client.unsubscribe(self.game_topic+"/status")
+        self._publish(self.topic.lobby+"/status", "end")
+        self.mqtt_client.unsubscribe(self.topic.lobby+"/status")
         self.ended = True
         print("game ended")

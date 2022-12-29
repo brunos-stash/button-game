@@ -1,10 +1,10 @@
 from simple import GameClient, sleep
 # from led import GameLED
-import keyboard
 from random import randint
 
+topic = input("choose a lobby name to play against eachother: ")
 my_client_id = str(randint(0, 10000))
-gclient = GameClient(my_client_id, main=None)
+gclient = GameClient(my_client_id, game_lobby=topic, main=None)
 gclient.mqtt_client.loop_start()
 
 for i in range(10):
