@@ -168,8 +168,6 @@ class GameClient:
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
 
     def send_tap(self):
-        if self.main:
-            self.my_score += 1
         self._publish(self.game_topic+"/tap", "tap")
 
     def send_score(self):
