@@ -3,6 +3,7 @@ from random import randint
 from time import sleep
 import keyboard
 from dataclasses import dataclass
+# from raspberry import RaspBerry
 
 @dataclass
 class Topic:
@@ -12,9 +13,14 @@ class Topic:
     draw: str
     tap: str
 
+@dataclass
+class Mode:
+    key="key"
+    raspberry="rpie"
+
 class GameClient:
     """Client that establishes MQTT connection and manages game logic and its state."""
-    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_lobby="", main=None) -> None:
+    def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_lobby="", main=None, finish=30, mode=Mode.key) -> None:
         """
         `client_id`: Your clients name.
 
@@ -27,10 +33,17 @@ class GameClient:
         `main`: Determines if this client is main or sub.
         Main client keeps the score for both clients and handles status updates.
         If `None` both clients will determine main/sub automatically.
-        Your and your opponents client can't have the same type.
+        Your and your opponents client can't have the same type. Should be left untouched.
+
+        `finish`: How many taps to win the game.
+
+        `mode`: Using keys to tap or raspberry pi button
         """
-        # self.raspberry = RaspBerry()
-        # self.raspberry.button.when_pressed = self.send_tap
+        self.mode = mode
+        if mode == Mode.raspberry:
+            from raspberry import RaspBerry
+            self.raspberry = RaspBerry()
+            self.raspberry.button.when_pressed = self.send_tap
         self.topic = Topic
         self.mqtt_client = mqtt.Client(client_id=client_id)
         self.mqtt_client.on_connect = self.on_connect
@@ -49,11 +62,11 @@ class GameClient:
         self.ended = False
         self.my_score = 0
         self.op_score = 0
-        self.finish = 5
+        self.finish = finish
         self.penalty_counter = 5
-        # self._draw_nr = randint(0, 10000)
-        self._draw_nr = int(client_id)
-    
+        self._draw_nr = randint(0, 10000)
+        # self._draw_nr = int(client_id)
+
     def _publish(self, topic, message):
         """Attaches your `client_id` before sending a message to the specified topic."""
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
@@ -128,14 +141,18 @@ class GameClient:
     def start(self):
         """Main client method. If main/sub clients are determined, this will start the game."""
         if self.main:
-            print("Tap key is 'S'")
-            print("Start game by tapping 'S'")
-            keyboard.wait("s")
-            keyboard.add_hotkey("s", self.send_tap)
+            if self.mode == Mode.key:
+                print("Tap key is 'S'")
+                print("Start game by tapping 'S'")
+                keyboard.wait("s")
+                keyboard.add_hotkey("s", self.send_tap)
+            elif self.mode == Mode.raspberry:
+                print("Start game by pushing the button")
             self._start_countdown()
         else:
-            print("Tap key is 'D'")
-            keyboard.add_hotkey("d", self.send_tap)
+            if self.mode == Mode.key:
+                print("Tap key is 'D'")
+                keyboard.add_hotkey("d", self.send_tap)                
             print("Waiting for other client to start the game. Be ready.")
 
     def _start_countdown(self):
@@ -244,22 +261,26 @@ class GameClient:
         Ends the game if finish is reached.
         """
         print(f"My score: {self.my_score:02} | Opponents score: {self.op_score:02}" )
-        if self.my_score > 0:
-            # self.raspberry.led1.on()
-            # print("led 1 on")
-            pass
-        if self.my_score >= self.finish/2:
-            # self.raspberry.led2.on()
-            # print("led 2 on")
-            pass
-        if self.my_score >= self.finish:
-            # self.raspberry.led3.on()
-            # print("led 3 on")
-            print("You win!")
-            self.end_game()
-        elif self.op_score >= self.finish:
-            print("You lose!")
-            self.end_game()
+        if self.mode == Mode.raspberry:
+            if self.my_score > 0:
+                self.raspberry.led1.on()
+            if self.my_score >= self.finish/2:
+                self.raspberry.led2.on()    
+            if self.my_score >= self.finish:
+                self.raspberry.led3.on()
+                print("You win!")
+                self.raspberry.end()
+                self.end_game()
+            elif self.op_score >= self.finish:
+                print("You lose!")
+                self.end_game()
+        elif self.mode == Mode.key:
+            if self.my_score >= self.finish:
+                print("You win!")
+                self.end_game()
+            elif self.op_score >= self.finish:
+                print("You lose!")
+                self.end_game()
         
     def end_game(self):
         """Ends game by sending `end` status to `topic.status´ and then disconnects."""
