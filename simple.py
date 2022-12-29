@@ -20,6 +20,7 @@ class GameClient:
         self.mqtt_client = mqtt.Client(client_id=client_id)
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
+        self.mqtt_client.on_disconnect = self.on_disconnect
         self.mqtt_client.connect(mqtt_broker, 1883, 60)
         self.mqtt_client.user_data_set(client_id)
         self.client_id = client_id
@@ -37,6 +38,9 @@ class GameClient:
         self.penalty_counter = 3
         # self._draw_nr = randint(0, 10000)
         self._draw_nr = int(client_id)
+
+    def on_disconnect(self, client, userdata, rc):
+        print("im disconnecting")
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
@@ -218,4 +222,5 @@ class GameClient:
         self._publish(self.topic.status, "end")
         self.mqtt_client.unsubscribe(self.topic.status)
         self.ended = True
+        self.mqtt_client.disconnect()
         print("game ended")
