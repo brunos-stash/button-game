@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 from random import randint
 from time import sleep
-
+import keyboard
 class GameClient:
     def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_topic="aaaaahhhh/djkjdkj/lobby", main=None) -> None:
         # self.raspberry = RaspBerry()
@@ -15,11 +15,13 @@ class GameClient:
         self.game_topic = game_topic
         self.main = main
         self.started = False
+        self.ended = False
         self.my_score = 0
         self.op_score = 0
         self.finish = 5
         self.penalty_counter = 3
-        self._draw_nr = randint(0, 10000)
+        # self._draw_nr = randint(0, 10000)
+        self._draw_nr = int(client_id)
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
@@ -36,7 +38,6 @@ class GameClient:
         print("listening on status")
 
     def _draw_main(self):
-        # self.draw_nr = randint(0, 10000)
         print("sending draw nr: ", self._draw_nr)
         self._publish(self.game_topic+"/status/draw", self._draw_nr)
 
@@ -70,7 +71,6 @@ class GameClient:
     def on_tap(self, client, userdata, message):
         # print("on_tap: ", message.payload)
         _id = self._get_id(message)
-        # _message = self._get_message(message)
         if not self.started:
             if self.client_id != _id:
                 return
@@ -108,7 +108,8 @@ class GameClient:
             print("START!")
         if _message == "end":
             print("game ended, press enter to exit")
-            exit()
+            self.end_game()
+            # exit()
         if _message == "b4begin":
             print(f"{_id} tapped to often before game began and lost")
             self.end_game()
@@ -125,8 +126,6 @@ class GameClient:
                     self.op_score = int(main)
                 except Exception as e:
                     print("OOOooops: ", e)
-            # else:
-            #     print("you are not main trying to send score message")
             self.update()
 
     def _get_id(self, message):
@@ -137,20 +136,14 @@ class GameClient:
 
     def start(self):
         if self.main:
-            print("press enter to start...")
-            self.mqtt_client.subscribe(self.game_topic+"/status/countdown")
-            self.mqtt_client.message_callback_add(self.game_topic+"/status/countdown", self.on_countdown)
-            # self._publish(self.game_topic+"/status/countdown","start")
-            # self._start_countdown()
-            # self._publish(self.game_topic+"/status", "start")
+            # print("press enter to start...")
+            input("press enter to start...")
+            self.start_cd()
         else:
             print("waiting for main client to start")
-    def start_cd(self):
-        self._publish(self.game_topic+"/status/countdown","start")
 
-    def on_countdown(self, client, userdata, message):
-        self.mqtt_client.unsubscribe(self.game_topic+"/status/countdown")
-        self.mqtt_client.message_callback_remove(self.game_topic+"/status/countdown")
+    def start_cd(self):
+        keyboard.add_hotkey("enter", self.send_tap)
         cd = 1/3
         blank = " "*50
         self._publish(self.game_topic, "GET READY!\n")
@@ -161,7 +154,6 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "3.. "+blank)
         sleep(cd)
-        # self.send_tap()
         self._publish(self.game_topic, "3..."+blank)
         sleep(cd)
         self._publish(self.game_topic, "\r\n2   "+blank)
@@ -170,19 +162,18 @@ class GameClient:
         sleep(cd)
         self._publish(self.game_topic, "2.. "+blank)
         sleep(cd)
-        # self.send_tap()
         self._publish(self.game_topic, "2..."+blank)
         sleep(cd)
         self._publish(self.game_topic, "\r\n1   "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1.  "+blank)
         sleep(cd)
-        # self.send_tap()
         self._publish(self.game_topic, "1.. "+blank)
         sleep(cd)
         self._publish(self.game_topic, "1..."+blank)
         sleep(cd)
         self._publish(self.game_topic+"/status", "start")
+        keyboard.remove_hotkey("enter")
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
@@ -220,6 +211,8 @@ class GameClient:
     def end_game(self):
         # print("send end")
         self._publish(self.game_topic+"/status", "end")
+        self.mqtt_client.unsubscribe(self.game_topic+"/status")
+        self.ended = True
 
 if __name__ == '__main__':
     my_client_id = input("your id: ")
