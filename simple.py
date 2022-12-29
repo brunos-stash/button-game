@@ -41,13 +41,14 @@ class GameClient:
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
         self.mqtt_client.subscribe(self.topic.lobby)
+        self.mqtt_client.subscribe(self.topic.draw)
+        self.mqtt_client.message_callback_add(self.topic.draw, self.on_draw)
+        
         self.mqtt_client.subscribe(self.topic.status)
         self.mqtt_client.subscribe(self.topic.score)
-        self.mqtt_client.subscribe(self.topic.draw)
         self.mqtt_client.subscribe(self.topic.tap)
         self.mqtt_client.message_callback_add(self.topic.status, self.on_status)
         self.mqtt_client.message_callback_add(self.topic.score, self.on_score)
-        self.mqtt_client.message_callback_add(self.topic.draw, self.on_draw)
         self.mqtt_client.message_callback_add(self.topic.tap, self.on_tap)
         print("You are in lobby: ", self.topic.lobby)
         self._draw_main()

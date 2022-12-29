@@ -11,6 +11,8 @@ for i in range(10):
     sleep(1)
     if gclient.main is not None:
         break
+if gclient.main is None:
+    exit("timeout")
 
 gclient.start()
 
