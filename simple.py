@@ -38,9 +38,20 @@ class GameClient:
         self.penalty_counter = 3
         # self._draw_nr = randint(0, 10000)
         self._draw_nr = int(client_id)
+    
+    def _publish(self, topic, message):
+        self.mqtt_client.publish(topic, self.client_id+":"+str(message))
 
-    def on_disconnect(self, client, userdata, rc):
-        print("im disconnecting")
+    def _get_id(self, message):
+        return bytes.decode(message.payload).split(":")[0]
+
+    def _get_message(self, message):
+        return bytes.decode(message.payload).split(":")[1]
+        
+    def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
+        _id = self._get_id(message)
+        _message = self._get_message(message)
+        print(f"{_message}", end="\r")
 
     def on_connect(self, client:mqtt.Client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
@@ -51,10 +62,11 @@ class GameClient:
         print("You are in lobby: ", self.topic.lobby)
         self._draw_main()
         print("listening on status")
-
-    def _draw_main(self):
         print("sending draw nr: ", self._draw_nr)
         self._publish(self.topic.draw, self._draw_nr)
+
+    def on_disconnect(self, client, userdata, rc):
+        print("im disconnecting")
 
     def on_draw(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
@@ -82,13 +94,30 @@ class GameClient:
         self.mqtt_client.message_callback_add(self.topic.status, self.on_status)
         self.mqtt_client.message_callback_add(self.topic.score, self.on_score)
         self.mqtt_client.message_callback_add(self.topic.tap, self.on_tap)
-        
-
-    def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
+    
+    def on_status(self, client, userdata, message):
+        # print("on_status: ", message.payload)
         _id = self._get_id(message)
         _message = self._get_message(message)
-        print(f"{_message}", end="\r")
-
+        if _message == "start":
+            if self.started:
+                print("not started")
+                return
+            # you are main and you started the game
+            if self.main and (self.client_id == _id):
+                self.started = True
+            # you are not main and main started game
+            elif not self.main and (self.client_id != _id):
+                self.started = True
+            print("")
+            print("START!")
+        if _message == "end":
+            self.end_game()
+            # exit()
+        if _message == "b4begin":
+            print(f"{_id} tapped to often before game began and lost")
+            self.end_game()
+    
     def on_tap(self, client, userdata, message):
         # print("on_tap: ", message.payload)
         _id = self._get_id(message)
@@ -119,29 +148,6 @@ class GameClient:
                 self.op_score += 1
             self.send_score()
 
-    def on_status(self, client, userdata, message):
-        # print("on_status: ", message.payload)
-        _id = self._get_id(message)
-        _message = self._get_message(message)
-        if _message == "start":
-            if self.started:
-                print("not started")
-                return
-            # you are main and you started the game
-            if self.main and (self.client_id == _id):
-                self.started = True
-            # you are not main and main started game
-            elif not self.main and (self.client_id != _id):
-                self.started = True
-            print("")
-            print("START!")
-        if _message == "end":
-            self.end_game()
-            # exit()
-        if _message == "b4begin":
-            print(f"{_id} tapped to often before game began and lost")
-            self.end_game()
-
     def on_score(self, client, userdata, message):
         _id = self._get_id(message)
         _message = self._get_message(message)
@@ -156,25 +162,19 @@ class GameClient:
                     print("OOOooops: ", e)
             self.update()
 
-    def _get_id(self, message):
-        return bytes.decode(message.payload).split(":")[0]
-
-    def _get_message(self, message):
-        return bytes.decode(message.payload).split(":")[1]
-
     def start(self):
         if self.main:
             print("your key is S")
             print("start game by tapping S")
             keyboard.wait("s")
             keyboard.add_hotkey("s", self.send_tap)
-            self.start_cd()
+            self._start_cd()
         else:
             print("your key is D")
             keyboard.add_hotkey("d", self.send_tap)
             print("waiting for main client to start")
 
-    def start_cd(self):
+    def _start_cd(self):
         cd = 1/3
         blank = " "*50
         self._publish(self.topic.lobby, "GET READY!\n")
@@ -188,9 +188,6 @@ class GameClient:
                     return
                 sleep(cd)
         self._publish(self.topic.status, "start")
-
-    def _publish(self, topic, message):
-        self.mqtt_client.publish(topic, self.client_id+":"+str(message))
 
     def send_tap(self):
         self._publish(self.topic.tap, "tap")
