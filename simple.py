@@ -115,7 +115,6 @@ class GameClient:
             print("")
             print("START!")
         if _message == "end":
-            print("game ended")
             self.end_game()
             # exit()
         if _message == "b4begin":
@@ -160,7 +159,7 @@ class GameClient:
         self._publish(self.game_topic, "GET READY!\n")
         sleep(1)
         for i in range(3):
-            nr = str(i+1)
+            nr = str(3-i)
             for dot in range(4):
                 countdown = nr + "." * dot
                 self._publish(self.game_topic, countdown + blank)
@@ -193,15 +192,13 @@ class GameClient:
             # self.raspberry.led3.on()
             # print("led 3 on")
             print("you won")
-            if self.main:
-                self.end_game()
-        if self.op_score >= self.finish:
+            self.end_game()
+        elif self.op_score >= self.finish:
             print("you lost")
-            if self.main:
-                self.end_game()
+            self.end_game()
         
     def end_game(self):
-        # print("send end")
         self._publish(self.game_topic+"/status", "end")
         self.mqtt_client.unsubscribe(self.game_topic+"/status")
         self.ended = True
+        print("game ended")
