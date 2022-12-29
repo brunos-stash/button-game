@@ -12,6 +12,34 @@ class Topic:
     draw: str
     tap: str
 
+class MainClient:
+    def start():
+        pass
+    def start_cd():
+        pass
+    def on_draw():
+        pass
+    def on_status():
+        pass
+    def on_tap():
+        pass
+    def on_score():
+        pass
+    def send_score():
+        pass
+
+class SubClient:
+    def start():
+        pass
+    def on_draw():
+        pass
+    def on_status():
+        pass
+    def on_tap():
+        pass
+    def on_score():
+        pass
+
 class GameClient:
     def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_lobby="", main=None) -> None:
         # self.raspberry = RaspBerry()
