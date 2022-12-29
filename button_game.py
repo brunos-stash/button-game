@@ -18,6 +18,7 @@ for i in range(timeout):
     dots = "." * (i%4)
     text = f"{wait_text}{dots:4} {i+1:02}s / {timeout:02}s"
     print(text, end="\r")
+print()
 if gclient.main is None:
     print()
     exit("Timeout reached")
