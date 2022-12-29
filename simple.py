@@ -44,12 +44,6 @@ class GameClient:
         self.mqtt_client.subscribe(self.topic.draw)
         self.mqtt_client.message_callback_add(self.topic.draw, self.on_draw)
         
-        self.mqtt_client.subscribe(self.topic.status)
-        self.mqtt_client.subscribe(self.topic.score)
-        self.mqtt_client.subscribe(self.topic.tap)
-        self.mqtt_client.message_callback_add(self.topic.status, self.on_status)
-        self.mqtt_client.message_callback_add(self.topic.score, self.on_score)
-        self.mqtt_client.message_callback_add(self.topic.tap, self.on_tap)
         print("You are in lobby: ", self.topic.lobby)
         self._draw_main()
         print("listening on status")
@@ -70,14 +64,20 @@ class GameClient:
             return
         if self._draw_nr >= nr:
             self.main = True
-            self.mqtt_client.unsubscribe(self.topic.draw)
             print("im main")
         else:
             self.main = False
-            self.mqtt_client.unsubscribe(self.topic.draw)
             print("im not main")
+        self.mqtt_client.unsubscribe(self.topic.draw)
+        self.mqtt_client.message_callback_remove(self.topic.draw)
         print("sending one last time my draw nr")
         self._draw_main()
+        self.mqtt_client.subscribe(self.topic.status)
+        self.mqtt_client.subscribe(self.topic.score)
+        self.mqtt_client.subscribe(self.topic.tap)
+        self.mqtt_client.message_callback_add(self.topic.status, self.on_status)
+        self.mqtt_client.message_callback_add(self.topic.score, self.on_score)
+        self.mqtt_client.message_callback_add(self.topic.tap, self.on_tap)
         
 
     def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
