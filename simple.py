@@ -13,7 +13,22 @@ class Topic:
     tap: str
 
 class GameClient:
+    """Client that establishes MQTT connection and manages game logic and its state."""
     def __init__(self, client_id, mqtt_broker="mqtt.eclipseprojects.io", game_lobby="", main=None) -> None:
+        """
+        `client_id`: Your clients name.
+
+        `mqtt_broker`: URL to the broker. By default uses Eclipses' broker "mqtt.eclipseprojects.io"
+        which is accessible from the internet and everyone.
+
+        `game_lobby`: Name of the lobby to meet the other client. 
+        Both clients should have the same game_lobby to be able to play against eachother.
+
+        `main`: Determines if this client is main or sub.
+        Main client keeps the score for both clients and handles status updates.
+        If `None` both clients will determine main/sub automatically.
+        Your and your opponents client can't have the same type.
+        """
         # self.raspberry = RaspBerry()
         # self.raspberry.button.when_pressed = self.send_tap
         self.topic = Topic
@@ -145,9 +160,6 @@ class GameClient:
         _id = self._get_id(message)
         _message = self._get_message(message)
         if _message == "start":
-            # if self.started:
-            #     print("TOO EARLY!")
-            #     return
             # you are main client and you started the game
             if self.main and (self.client_id == _id):
                 self.started = True
