@@ -72,8 +72,13 @@ class GameClient:
         # print("on_tap: ", message.payload)
         _id = self._get_id(message)
         if not self.started:
-            if self.client_id != _id:
-                return
+            # you are main and opponent tapped
+            if self.main and (self.client_id != _id):
+                self.op_score -= 1
+            # you are main and you tapped
+            elif self.main and (self.client_id == _id):
+                self.my_score -= 1
+
             self.penalty_counter -= 1
             if self.penalty_counter <= 0:
                 print("you lose")
