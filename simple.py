@@ -66,6 +66,7 @@ class GameClient:
         self.penalty_counter = 3
         # self._draw_nr = randint(0, 10000)
         self._draw_nr = int(client_id)
+        # self.client = MainClient(client_id, mqtt_broker=mqtt_broker, game_lobby=game_lobby, main=main)
 
     def on_disconnect(self, client, userdata, rc):
         print("im disconnecting")
