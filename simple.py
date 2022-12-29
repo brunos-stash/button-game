@@ -144,7 +144,7 @@ class GameClient:
         print(f"You are connected with client: '{_id}'")
     
     def start(self):
-        """Main client method. If main/sub clients are determined, this will start the game."""
+        """If main/sub clients are determined, this will start the game."""
         if self.main:
             # if self.mode == Mode.key:
             print("Tap key is 'S'")
