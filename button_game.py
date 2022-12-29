@@ -8,13 +8,19 @@ my_client_id = str(randint(0, 10000))
 gclient = GameClient(my_client_id, game_lobby=topic, main=None)
 gclient.mqtt_client.loop_start()
 
-for i in range(10):
+timeout = 10
+print()
+for i in range(timeout):
     if gclient.main is not None:
         break
-    print("waiting for other client...")
     sleep(1)
+    wait_text = "Waiting for other client in lobby"
+    dots = "." * (i%4)
+    text = f"{wait_text}{dots:4} {i+1:02}s / {timeout:02}s"
+    print(text, end="\r")
 if gclient.main is None:
-    exit("timeout")
+    print()
+    exit("Timeout reached")
 
 gclient.start()
 

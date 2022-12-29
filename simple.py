@@ -47,7 +47,7 @@ class GameClient:
 
     def _get_message(self, message):
         return bytes.decode(message.payload).split(":")[1]
-        
+
     def on_message(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
         _message = self._get_message(message)
@@ -61,12 +61,14 @@ class GameClient:
         
         print("You are in lobby: ", self.topic.lobby)
         self._draw_main()
-        print("listening on status")
-        print("sending draw nr: ", self._draw_nr)
-        self._publish(self.topic.draw, self._draw_nr)
+        # print("listening on status")
 
     def on_disconnect(self, client, userdata, rc):
-        print("im disconnecting")
+        print("Disconnected")
+
+    def _draw_main(self):
+        # print("sending draw nr: ", self._draw_nr)
+        self._publish(self.topic.draw, self._draw_nr)
 
     def on_draw(self, client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
         _id = self._get_id(message)
@@ -76,17 +78,17 @@ class GameClient:
         try:
             nr = int(_message)
         except Exception as e:
-            print("woops: ", e)
+            print("Ooops: ", e)
             return
         if self._draw_nr >= nr:
             self.main = True
-            print("im main")
+            # print("im main")
         else:
             self.main = False
-            print("im not main")
+            # print("im not main")
         self.mqtt_client.unsubscribe(self.topic.draw)
         self.mqtt_client.message_callback_remove(self.topic.draw)
-        print("sending one last time my draw nr")
+        # print("sending one last time my draw nr")
         self._draw_main()
         self.mqtt_client.subscribe(self.topic.status)
         self.mqtt_client.subscribe(self.topic.score)
