@@ -13,11 +13,7 @@ for i in range(10):
         break
 
 gclient.start()
-if gclient.main:
-    keyboard.add_hotkey("s", gclient.send_tap)
-    # keyboard.add_hotkey("enter", gclient.start_cd)
-else:
-    keyboard.add_hotkey("d", gclient.send_tap)
+
 while True:
     if gclient.ended:
         break

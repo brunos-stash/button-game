@@ -78,6 +78,9 @@ class GameClient:
             # you are main and you tapped
             elif self.main and (self.client_id == _id):
                 self.my_score -= 1
+            
+            if self.client_id != _id:
+                return
 
             self.penalty_counter -= 1
             if self.penalty_counter <= 0:
@@ -112,7 +115,7 @@ class GameClient:
             print("")
             print("START!")
         if _message == "end":
-            print("game ended, press enter to exit")
+            print("game ended")
             self.end_game()
             # exit()
         if _message == "b4begin":
@@ -141,14 +144,17 @@ class GameClient:
 
     def start(self):
         if self.main:
-            # print("press enter to start...")
-            input("press enter to start...")
+            print("your key is S")
+            print("start game by tapping S")
+            keyboard.wait("s")
+            keyboard.add_hotkey("s", self.send_tap)
             self.start_cd()
         else:
+            print("your key is D")
+            keyboard.add_hotkey("d", self.send_tap)
             print("waiting for main client to start")
 
     def start_cd(self):
-        keyboard.add_hotkey("enter", self.send_tap)
         cd = 1/3
         blank = " "*50
         self._publish(self.game_topic, "GET READY!\n")
@@ -162,7 +168,6 @@ class GameClient:
                     return
                 sleep(cd)
         self._publish(self.game_topic+"/status", "start")
-        keyboard.remove_hotkey("enter")
 
     def _publish(self, topic, message):
         self.mqtt_client.publish(topic, self.client_id+":"+str(message))
@@ -200,23 +205,3 @@ class GameClient:
         self._publish(self.game_topic+"/status", "end")
         self.mqtt_client.unsubscribe(self.game_topic+"/status")
         self.ended = True
-
-if __name__ == '__main__':
-    my_client_id = input("your id: ")
-    keep_score_inp = input("main ?")
-    if keep_score_inp == "y":
-        main = True
-    else:
-        main = False
-
-    gclient = GameClient(my_client_id, main=main)
-    print("i am keeping score: ", main)
-
-    gclient.mqtt_client.loop_start()
-    # gclient.publish(lobby_topic, "available")
-    gclient.start()
-
-    while True:
-        if gclient.started:
-            sleep(3)
-            gclient.send_tap()
