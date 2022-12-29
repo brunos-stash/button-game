@@ -51,7 +51,6 @@ class GameClient:
         self.mqtt_client.on_disconnect = self.on_disconnect
         self.mqtt_client.connect(mqtt_broker, 1883, 60)
         self.mqtt_client.user_data_set(client_id)
-        self.client_id = client_id
         self.topic.lobby = "aaaaahhhh/djkjdkj/lobby/"+game_lobby
         self.topic.tap = self.topic.lobby + "/tap"
         self.topic.status = self.topic.lobby + "/status"
@@ -66,6 +65,10 @@ class GameClient:
         self.penalty_counter = 5
         self._draw_nr = randint(0, 10000)
         # self._draw_nr = int(client_id)
+        if not client_id:
+            self.client_id = str(self._draw_nr)
+        else:
+            self.client_id = client_id
 
     def _publish(self, topic, message):
         """Attaches your `client_id` before sending a message to the specified topic."""
@@ -91,7 +94,7 @@ class GameClient:
         self.mqtt_client.subscribe(self.topic.lobby)
         self.mqtt_client.subscribe(self.topic.draw)
         self.mqtt_client.message_callback_add(self.topic.draw, self.on_draw)
-        
+        print("Your client id: ", self.client_id)
         print("You are in lobby: ", self.topic.lobby)
         self._draw_main()
         # print("listening on status")
@@ -137,6 +140,8 @@ class GameClient:
         self.mqtt_client.message_callback_add(self.topic.status, self.on_status)
         self.mqtt_client.message_callback_add(self.topic.score, self.on_score)
         self.mqtt_client.message_callback_add(self.topic.tap, self.on_tap)
+        print()
+        print(f"You are connected with client: '{_id}'")
     
     def start(self):
         """Main client method. If main/sub clients are determined, this will start the game."""
