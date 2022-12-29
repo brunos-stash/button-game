@@ -148,30 +148,14 @@ class GameClient:
         blank = " "*50
         self._publish(self.game_topic, "GET READY!\n")
         sleep(1)
-        self._publish(self.game_topic, "3   "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "3.  "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "3.. "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "3..."+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "\r\n2   "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "2.  "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "2.. "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "2..."+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "\r\n1   "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "1.  "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "1.. "+blank)
-        sleep(cd)
-        self._publish(self.game_topic, "1..."+blank)
-        sleep(cd)
+        for i in range(3):
+            nr = str(i+1)
+            for dot in range(4):
+                countdown = nr + "." * dot
+                self._publish(self.game_topic, countdown + blank)
+                if self.ended:
+                    return
+                sleep(cd)
         self._publish(self.game_topic+"/status", "start")
         keyboard.remove_hotkey("enter")
 
