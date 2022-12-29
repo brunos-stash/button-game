@@ -141,13 +141,13 @@ class GameClient:
     def start(self):
         """Main client method. If main/sub clients are determined, this will start the game."""
         if self.main:
-            if self.mode == Mode.key:
-                print("Tap key is 'S'")
-                print("Start game by tapping 'S'")
-                keyboard.wait("s")
-                keyboard.add_hotkey("s", self.send_tap)
-            elif self.mode == Mode.raspberry:
-                print("Start game by pushing the button")
+            # if self.mode == Mode.key:
+            print("Tap key is 'S'")
+            print("Start game by tapping 'S'")
+            keyboard.wait("s")
+            keyboard.add_hotkey("s", self.send_tap)
+            # elif self.mode == Mode.raspberry:
+            print("Start game by pushing the button")
             self._start_countdown()
         else:
             if self.mode == Mode.key:
