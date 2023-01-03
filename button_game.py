@@ -1,4 +1,4 @@
-from simple import GameClient, sleep
+from simple import GameClient, sleep, Mode
 
 def wait_for_other_client(timeout=30):
     """`timeout`: How long to wait for other client in seconds."""
@@ -21,7 +21,8 @@ def wait_for_other_client(timeout=30):
 if __name__ == "__main__":
     topic = input("Choose a lobby name to play against eachother: ")
     my_client_id = input("Your name: ")
-    client = GameClient(my_client_id, game_lobby=topic)
+    client = GameClient(my_client_id, game_lobby=topic, mode=Mode.key)
+    # client = GameClient(my_client_id, game_lobby=topic, mode=Mode.raspberry)
     client.mqtt_client.loop_start()
 
     if wait_for_other_client():
