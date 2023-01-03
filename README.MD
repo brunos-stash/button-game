@@ -14,16 +14,22 @@ It can be played with `keyboard` or assembled `RaspberyPi`.
 
 1. Agree with the other player on a `topic name` to set your unique lobby.
 
-2. Start game.
+2. Change `mode` to `Mode.raspberry` if you're using Raspberry Pi inside `game.py`
 
-```bash    
-sudo python3 button_game.py
+```python
+client = GameClient(my_client_id, game_lobby=topic, mode=Mode.raspberry)
 ```
 
-3. Follow instructions
+3. Start game.
+
+```bash    
+sudo python3 game.py
+```
+
+4. Follow instructions
 4. **TAP**
-5. ?
-6. Enjoy
+6. ?
+7. Enjoy
 
 # Clients
 There are 2 client types. `Main` and `Sub`.

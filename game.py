@@ -1,4 +1,4 @@
-from simple import GameClient, sleep, Mode
+from simple_client import GameClient, sleep, Mode
 
 def wait_for_other_client(timeout=30):
     """`timeout`: How long to wait for other client in seconds."""

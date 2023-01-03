@@ -3,7 +3,6 @@ from random import randint
 from time import sleep
 import keyboard
 from dataclasses import dataclass
-# from raspberry import RaspBerry
 
 @dataclass
 class Topic:
