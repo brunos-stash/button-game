@@ -1,5 +1,11 @@
 # Button Game
 
+# Install
+
+For Raspberry
+
+    sudo pip3 install -r requirements.txt
+
 # Goal
 Get 30 `taps` faster than your opponent to win. To tap you push the button.
 
@@ -11,7 +17,7 @@ It can be played with `keyboard` or assembled `RaspberyPi`.
 2. Start game.
 
 ```bash    
-python button_game.py
+sudo python3 button_game.py
 ```
 
 3. Follow instructions
